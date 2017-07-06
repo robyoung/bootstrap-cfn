@@ -603,6 +603,17 @@ These entries can also specify their own policies or use the default, vpc limite
              /:
              expirationdays: 5
 
+A logical name can be provided for bucket which need not be unique. This can be useful when
+there is a bucket for a given use in each environment. Fabric tasks can then be written against
+the logical name as seen in the `template deploy <https://github.com/ministryofjustice/template-deploy/blob/master/fabfile.py>`_ :code:`upload_assets` task.
+
+.. code:: yaml
+
+   s3:
+      buckets:
+         - name: mybucket-dev
+           logical-name: mybucket
+
 The outputs of these buckets will be the bucket name postfixed by 'BucketName', ie, mybucketidBucketName. Additionally, and as shown above, one can define a list of Lifecycle rules on a per prefix basis. If a root rule is defined, the rest of the rules are ignored.
 
 Currently, only non-versioned buckets are supported. 

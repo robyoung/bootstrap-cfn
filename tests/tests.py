@@ -458,6 +458,37 @@ class TestConfigParser(unittest.TestCase):
                 self._resources_to_dict([static_bp, bucket, bucket1, bucket_policy1,
                                          bucket2, bucket_policy2, bucket3, bucket_policy3]))
 
+    def test_s3_additional_bucket_override_logical_name(self):
+        conf_under_test = {
+            'static-bucket-name': 'moj-test-dev-static',
+            'buckets': [
+                {
+                    'name': 'testbucket-dev',
+                    'logical-name': 'testbucket'
+                }
+            ]
+        }
+
+        expected_bucket_config = {
+            'Properties': {
+                'AccessControl': 'BucketOwnerFullControl',
+                'BucketName': 'testbucket-dev',
+            },
+            'Type': 'AWS::S3::Bucket',
+        }
+
+        project_config = ProjectConfig('tests/sample-project.yaml', 'dev')
+        project_config.config['s3'] = conf_under_test
+        config = ConfigParser(project_config.config, 'my-stack-name')
+
+        template = Template()
+        config.s3(template)
+        resources = template.resources.values()
+
+        s3_cfg = self._resources_to_dict(resources)
+
+        compare(expected_bucket_config, s3_cfg['testbucket'])
+
     def test_rds(self):
 
         template = Template()

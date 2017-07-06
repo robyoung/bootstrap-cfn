@@ -515,19 +515,23 @@ class ConfigParser(object):
                 The troposphere.Template object
         """
         bucket_name = bucket_config.get('name')
+        logical_name = bucket_config.get('logical-name', bucket_name)
 
         if 'lifecycles' in bucket_config:
             lifecycle_cfg = self.create_s3_lifecyclerules(bucket_config['lifecycles'])
             bucket = Bucket(
-                bucket_name,
+                logical_name,
                 AccessControl="BucketOwnerFullControl",
                 LifecycleConfiguration=lifecycle_cfg
             )
         else:
             bucket = Bucket(
-                bucket_name,
+                logical_name,
                 AccessControl="BucketOwnerFullControl"
             )
+
+        if bucket_name != logical_name:
+            bucket.BucketName = bucket_name
 
         # If a policy has been manually set then use it, otherwise set
         # a reasonable default of public 'Get' access
@@ -547,14 +551,14 @@ class ConfigParser(object):
                 }
             }
         bucket_policy = BucketPolicy(
-            "{}Policy".format(bucket_name),
+            "{}Policy".format(logical_name),
             Bucket=Ref(bucket),
             PolicyDocument={"Statement": [policy]},
         )
         # Add the bucket name to the list of cloudformation
         # outputs
         template.add_output(Output(
-            "{}BucketName".format(bucket_name),
+            "{}BucketName".format(logical_name),
             Description="S3 bucket name",
             Value=Ref(bucket)
         ))
